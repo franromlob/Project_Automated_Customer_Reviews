@@ -1,0 +1,9 @@
+pandas==3.0.2
+numpy==2.4.4
+scikit-learn==1.8.0
+transformers==5.7.0
+torch==2.11.0
+plotly==6.7.0
+streamlit==1.57.0
+python-dotenv==1.0.0
+openai>=1.0.0

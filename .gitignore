@@ -1,0 +1,15 @@
+# Ignore virtual environments
+.venv/
+
+# Ignore raw datasets (too large for GitHub)
+data/raw/
+
+# Ignore large models
+models/
+
+__pycache__/
+*.pyc
+.DS_Store
+
+# Ignore credentials
+.envCLAUDE.md

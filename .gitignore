@@ -13,3 +13,4 @@ __pycache__/
 
 # Ignore credentials
 .envCLAUDE.md
+requirements.txt

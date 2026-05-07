@@ -439,3 +439,108 @@ R: "Cada módulo (preprocess, classify, cluster, summarize) tiene su propia func
 | Tokens máximos GPT | 1,000 |
 | Pylint score | 10.00 / 10 |
 | Longitud máxima de tokens (Transformer) | 128 (cubre p95 de reseñas) |
+
+---
+
+## 9. La carpeta `notebooks/` — Estructura y Función
+
+### La regla de oro
+
+> **Notebooks = pensar y mostrar. `src/` = hacer y reutilizar.**
+
+Los notebooks son documentos **narrativos e interactivos** — no están pensados para ejecutarse en producción, sino para ser leídos y presentados. El `src/` es la lógica limpia e importable que usa la app.
+
+---
+
+### Nivel 1 — Notebooks locales (análisis y resultados)
+
+#### `01_eda.ipynb` — El punto de partida
+Responde a una sola pregunta: **¿con qué datos trabajamos?**
+
+Hace dos cosas en orden:
+1. Carga el CSV **crudo** y documenta los 7 problemas que tiene (nulos, duplicados, categorías sucias, tipos incorrectos...) — justifica cada paso de `preprocess.py`
+2. Carga el CSV **limpio** y analiza distribuciones: cómo se reparten los ratings, qué productos tienen más reseñas, cuánto miden los textos
+
+Sin este notebook no sabrías por qué se tomaron las decisiones de limpieza ni qué te vas a encontrar en los modelos.
+
+---
+
+#### `02_classification.ipynb` — El juez de los modelos
+**No entrena nada.** Evalúa y compara los resultados que vienen de los notebooks de Colab.
+
+Carga los 4 CSV de predicciones (`reviews_with_predictions_*.csv`) y genera:
+- Las confusion matrices de los 4 modelos
+- Las tablas de Accuracy / F1 / Precision / Recall por modelo y clase
+- La conclusión de qué modelo usar en producción y por qué
+
+Sin este notebook tendrías predicciones en un CSV pero no sabrías si son buenas ni cuál elegir.
+
+---
+
+#### `03_clustering.ipynb` — El explorador de categorías
+Agrupa los 23 productos en meta-categorías sin ninguna etiqueta previa (aprendizaje no supervisado).
+
+Documenta el proceso de decisión:
+- Por qué TF-IDF sobre el texto de las reseñas
+- La curva elbow + silhouette para elegir K=5
+- La visualización PCA 2D para verificar que los clusters tienen sentido visualmente
+- Los nombres asignados a cada cluster ("Fire Tablets", "Alexa Devices"...)
+
+Sin este notebook, el `cluster.py` existiría pero nadie entendería por qué K=5 y no K=4 o K=6.
+
+---
+
+#### `04_summarization.ipynb` — El ingeniero de prompts
+Diseña y prueba el prompt que usa `summarize.py` para generar artículos con GPT-4o-mini.
+
+Documenta:
+- Por qué GPT-4o-mini y no BART o T5
+- La estructura del prompt (5 secciones obligatorias)
+- Ejemplos de salida para verificar la calidad antes de generar todos los artículos
+
+Sin este notebook, `summarize.py` sería una caja negra — no sabrías qué instrucciones recibe el modelo ni por qué los artículos tienen esa estructura.
+
+---
+
+### Nivel 2 — Notebooks de Colab (ejecución en GPU)
+
+Estos tres viven en `notebooks/colab/` porque **no se pueden ejecutar en un ordenador local** — necesitan una GPU de al menos 15 GB de VRAM para completarse en tiempo razonable.
+
+| Notebook | Qué hace | Por qué en Colab |
+|---|---|---|
+| `02_classification_GPU.ipynb` | Inferencia zero-shot con RoBERTa pretrained sobre 4.805 reseñas | ~30 min en CPU, ~2 min en T4 GPU |
+| `02_classification_finetuned_GPU.ipynb` | Fine-tuning de RoBERTa con class weights, 3 épocas | Imposible en CPU — backpropagation requiere GPU |
+| `03_classification_nlptown_finetuned_GPU.ipynb` | Reemplaza la cabeza de clasificación de nlptown (5→3 clases) y entrena | Mismo motivo — fine-tuning con Trainer de HuggingFace |
+
+El flujo es siempre el mismo: **subes el CSV limpio a Colab → ejecutas → descargas el CSV con predicciones → lo guardas en `data/processed/`**. El notebook local de evaluación (`02_classification.ipynb`) coge ese CSV y hace el análisis.
+
+---
+
+### El mapa completo
+
+```
+notebooks/
+│
+├── 01_eda.ipynb               ← ¿Qué tenemos? ¿Está limpio?
+├── 02_classification.ipynb    ← ¿Qué modelo gana?  (lee resultados de Colab)
+├── 03_clustering.ipynb        ← ¿Cuántos clusters? ¿Tienen sentido?
+├── 04_summarization.ipynb     ← ¿El prompt funciona? ¿Los artículos son buenos?
+│
+└── colab/
+    ├── 02_classification_GPU.ipynb               ← Inferencia RoBERTa (T4 GPU)
+    ├── 02_classification_finetuned_GPU.ipynb      ← Fine-tuning RoBERTa (T4 GPU)
+    └── 03_classification_nlptown_finetuned_GPU.ipynb  ← Fine-tuning nlptown (T4 GPU)
+```
+
+### Relación notebooks ↔ src/
+
+```
+Exploración (notebooks)              Producción (src/)
+        │                                    │
+01_eda.ipynb ──── descubrimientos ──► preprocess.py
+02_classification.ipynb ────────────► classify.py  ──► app/main.py
+03_clustering.ipynb ────────────────► cluster.py   ──► app/main.py
+04_summarization.ipynb ─────────────► summarize.py ──► app/main.py
+```
+
+Los notebooks son el **"¿por qué?"**. El `src/` es el **"¿cómo?"** ejecutable. La app es el **"¿para quién?"**.

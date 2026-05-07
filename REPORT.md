@@ -77,6 +77,10 @@ _Speaker note: Show the flow left-to-right: raw reviews → classification → c
 3. Lowercase + strip whitespace
 4. Map star ratings → sentiment: 1–2★ = negative · 3★ = neutral · 4–5★ = positive
 
+![Star Rating Distribution](data/processed/rating_distribution.png)
+
+![Review Length Distribution](data/processed/review_lengths.png)
+
 _Speaker note: The 21-word median is key — it explains why short-text models (Twitter-trained) are a reasonable baseline._
 
 ---
@@ -90,6 +94,10 @@ _Speaker note: The 21-word median is key — it explains why short-text models (
 | Positive  | 4,506 | **93.8%** |
 | Neutral   | 191   | 4.0%      |
 | Negative  | 108   | 2.2%      |
+
+![Sentiment Distribution](data/processed/sentiment_distribution.png)
+
+![Class Imbalance](data/processed/class_imbalance.png)
 
 **Why this matters:**
 
@@ -130,6 +138,18 @@ _Speaker note: The model selection narrative is the most interesting part techni
 | nlptown pretrained | **91.53%** | 0.35       | 0.58        | **0.93**    | 0.63     |
 | nlptown fine-tuned | 90.97%     | **0.38**   | 0.58        | 0.92        | 0.64     |
 
+**Confusion Matrix — RoBERTa pretrained (zero-shot)**
+
+![Confusion Matrix RoBERTa pretrained](data/processed/confusion_matrix_roberta.png)
+
+**Confusion Matrix — RoBERTa fine-tuned (selected model)**
+
+![Confusion Matrix RoBERTa fine-tuned](data/processed/confusion_matrix_finetuned.png)
+
+**Confusion Matrix — nlptown fine-tuned**
+
+![Confusion Matrix nlptown fine-tuned](data/processed/confusion_matrix_nlptown_finetuned.png)
+
 **Winner per use case:**
 
 - Best overall accuracy → **nlptown pretrained** (91.53%, no training needed, runs on CPU)
@@ -148,6 +168,8 @@ _Speaker note: Point out that nlptown pretrained beats RoBERTa by 2.7pp accuracy
 nlptown pretrained:   Accuracy 91.5% │ F1-neg 0.58 │ F1-macro 0.63
 RoBERTa fine-tuned:   Accuracy 87.8% │ F1-neg 0.73 │ F1-macro 0.68
 ```
+
+![Training Curves — nlptown fine-tuning](data/processed/training_curves_nlptown.png)
 
 **Why nlptown fine-tuning didn't improve negative F1:**
 
@@ -172,6 +194,18 @@ _Speaker note: This is the most nuanced technical insight of the project. Precis
 1. Concatenate reviews per product (TF-IDF, 500 features, bigrams)
 2. PCA → 10 components (89.15% variance explained)
 3. K-Means, K=2–8 evaluated via elbow + silhouette → **K=5 selected** (score = 0.40)
+
+**K selection — Elbow curve + Silhouette score**
+
+![Clustering Optimal K](data/processed/clustering_optimal_k.png)
+
+**PCA 2D — Cluster visualisation**
+
+![Clustering Visualisation](data/processed/clustering_visualization.png)
+
+**Cluster statistics — Reviews, products and average rating per category**
+
+![Cluster Statistics](data/processed/cluster_statistics.png)
 
 **Results:**
 

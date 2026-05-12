@@ -76,8 +76,7 @@ demo = gr.Interface(
         ["Fast shipping and exactly as described. Happy with the purchase."],
         ["Doesn't match the product description at all. Very disappointed."],
     ],
-    allow_flagging="never",
-    theme=gr.themes.Soft(),
+    flagging_mode="never",
 )
 
 if __name__ == "__main__":

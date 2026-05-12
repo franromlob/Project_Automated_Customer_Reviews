@@ -12,4 +12,8 @@ __pycache__/
 .DS_Store
 
 # Ignore credentials
-.envCLAUDE.md
+.env
+CLAUDE.md
+
+# Ignore Claude Code local settings
+.claude/
